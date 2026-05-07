@@ -1,0 +1,13 @@
+/* AI Security Lab - Base Styles */
+body {
+  font-family: system-ui, sans-serif;
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  background: #0d1117;
+  color: #c9d1d9;
+}
+
+h1 {
+  color: #58a6ff;
+}
