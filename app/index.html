@@ -1,14 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Security Lab</title>
-  <link rel="stylesheet" href="styles.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Security Lab</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>AI Security Engineering Lab</h1>
-  <p>Welcome to the AI Security Lab template. Built on Cloudflare Pages.</p>
-  <script src="app.js"></script>
+    <div class="container">
+        <header>
+            <h1>AI Security Lab</h1>
+            <p class="subtitle">Foundation Project for AI Security Engineering</p>
+        </header>
+
+        <main>
+            <section class="lab-section">
+                <h2>System Health Check</h2>
+                <p>Verify that the API backend is responding correctly.</p>
+                
+                <button id="healthCheckBtn" class="btn-primary">Check API Health</button>
+                
+                <div id="responseContainer" class="response-box hidden">
+                    <h3>API Response:</h3>
+                    <pre id="responseContent"></pre>
+                </div>
+            </section>
+
+            <section class="lab-section info">
+                <h2>About This Lab</h2>
+                <p>This is a starter project for exploring AI security concepts. Throughout the course, you'll enhance this application with:</p>
+                <ul>
+                    <li>Prompt injection defenses</li>
+                    <li>Output filtering and sanitization</li>
+                    <li>Sensitive data redaction</li>
+                    <li>Request logging and monitoring</li>
+                    <li>Policy enforcement</li>
+                    <li>Rate limiting</li>
+                </ul>
+            </section>
+        </main>
+
+        <footer>
+            <p>AI Security Engineering Lab &copy; 2026</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
 </body>
 </html>
