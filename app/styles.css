@@ -144,6 +144,16 @@ main {
     border-color: var(--error-color);
 }
 
+.response-box.blocked {
+    border-color: #f59e0b;
+}
+
+.hint {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-bottom: 1rem !important;
+}
+
 .chat-textarea {
     width: 100%;
     background: #0a0f1e;

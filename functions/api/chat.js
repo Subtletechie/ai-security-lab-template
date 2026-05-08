@@ -1,37 +1,91 @@
 // Cloudflare Pages Function: /api/chat
+// Lab 1: Prompt validation and basic prompt-injection detection
+
+const MAX_PROMPT_LENGTH = 500;
+
+const INJECTION_PHRASES = [
+  "ignore previous instructions",
+  "ignore all previous instructions",
+  "forget previous instructions",
+  "reveal system prompt",
+  "show me your system prompt",
+  "bypass safety",
+  "developer mode",
+];
+
+function detectInjection(prompt) {
+  const lower = prompt.toLowerCase();
+  return INJECTION_PHRASES.some((phrase) => lower.includes(phrase));
+}
+
+function logEvent(decision, promptLength, promptPreview, code) {
+  const entry = {
+    timestamp: new Date().toISOString(),
+    decision,
+    promptLength,
+    promptPreview: promptPreview.slice(0, 80),
+    ...(code ? { code } : {}),
+  };
+  console.log("[chat]", JSON.stringify(entry));
+}
+
+function json(data, status) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
 export async function onRequest(context) {
   if (context.request.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "Method not allowed" }),
-      { status: 405, headers: { "Content-Type": "application/json" } }
-    );
+    return json({ status: "error", code: "METHOD_NOT_ALLOWED" }, 405);
   }
 
   let body;
   try {
     body = await context.request.json();
   } catch {
-    return new Response(
-      JSON.stringify({ error: "Invalid JSON body" }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
-    );
+    return json({ status: "error", code: "INVALID_JSON" }, 400);
   }
 
-  const prompt = body && typeof body.prompt === "string" ? body.prompt.trim() : "";
+  const raw = body && typeof body.prompt === "string" ? body.prompt : "";
+  const prompt = raw.trim();
+
   if (!prompt) {
-    return new Response(
-      JSON.stringify({ error: "Missing or empty prompt" }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
+    logEvent("error", 0, "", "EMPTY_PROMPT");
+    return json({ status: "error", code: "EMPTY_PROMPT" }, 400);
+  }
+
+  if (prompt.length > MAX_PROMPT_LENGTH) {
+    logEvent("error", prompt.length, prompt, "PROMPT_TOO_LONG");
+    return json(
+      { status: "error", code: "PROMPT_TOO_LONG", maxLength: MAX_PROMPT_LENGTH },
+      400
     );
   }
 
-  return new Response(
-    JSON.stringify({
+  if (detectInjection(prompt)) {
+    logEvent("blocked", prompt.length, prompt, "SUSPECTED_PROMPT_INJECTION");
+    return json(
+      {
+        status: "blocked",
+        code: "SUSPECTED_PROMPT_INJECTION",
+        reason: "Prompt contains suspicious instruction-manipulation language.",
+        timestamp: new Date().toISOString(),
+      },
+      403
+    );
+  }
+
+  logEvent("ok", prompt.length, prompt);
+  return json(
+    {
+      status: "ok",
       reply: "Mock model response: " + prompt,
       mode: "mock",
       project: "ai-security-lab",
       timestamp: new Date().toISOString(),
-    }),
-    { status: 200, headers: { "Content-Type": "application/json" } }
+    },
+    200
   );
 }

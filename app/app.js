@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
       chatSendBtn.disabled = true;
       chatSendBtn.textContent = 'Sending…';
       chatResponseContainer.classList.add('hidden');
-      chatResponseContainer.classList.remove('success', 'error');
+      chatResponseContainer.classList.remove('success', 'error', 'blocked');
 
       try {
         const res = await fetch('/api/chat', {
@@ -49,9 +49,17 @@ document.addEventListener('DOMContentLoaded', () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ prompt: chatPrompt.value }),
         });
+
         const data = await res.json();
         chatResponse.textContent = JSON.stringify(data, null, 2);
-        chatResponseContainer.classList.add(res.ok ? 'success' : 'error');
+
+        if (data.status === 'ok') {
+          chatResponseContainer.classList.add('success');
+        } else if (data.status === 'blocked') {
+          chatResponseContainer.classList.add('blocked');
+        } else {
+          chatResponseContainer.classList.add('error');
+        }
       } catch (err) {
         chatResponse.textContent = JSON.stringify({ error: err.message }, null, 2);
         chatResponseContainer.classList.add('error');
