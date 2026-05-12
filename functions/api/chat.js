@@ -18,9 +18,10 @@ function detectInjection(prompt) {
   return INJECTION_PHRASES.some((phrase) => lower.includes(phrase));
 }
 
-function logEvent(decision, promptLength, promptPreview, code) {
+function logEvent(decision, promptLength, promptPreview, code, requestId) {
   const entry = {
     timestamp: new Date().toISOString(),
+    ...(requestId ? { requestId } : {}),
     decision,
     promptLength,
     promptPreview: promptPreview.slice(0, 80),
@@ -37,6 +38,8 @@ function json(data, status) {
 }
 
 export async function onRequest(context) {
+  const requestId = context.data.requestId;
+
   if (context.request.method !== "POST") {
     return json({ status: "error", code: "METHOD_NOT_ALLOWED" }, 405);
   }
@@ -52,12 +55,12 @@ export async function onRequest(context) {
   const prompt = raw.trim();
 
   if (!prompt) {
-    logEvent("error", 0, "", "EMPTY_PROMPT");
+    logEvent("error", 0, "", "EMPTY_PROMPT", requestId);
     return json({ status: "error", code: "EMPTY_PROMPT" }, 400);
   }
 
   if (prompt.length > MAX_PROMPT_LENGTH) {
-    logEvent("error", prompt.length, prompt, "PROMPT_TOO_LONG");
+    logEvent("error", prompt.length, prompt, "PROMPT_TOO_LONG", requestId);
     return json(
       { status: "error", code: "PROMPT_TOO_LONG", maxLength: MAX_PROMPT_LENGTH },
       400
@@ -65,7 +68,7 @@ export async function onRequest(context) {
   }
 
   if (detectInjection(prompt)) {
-    logEvent("blocked", prompt.length, prompt, "SUSPECTED_PROMPT_INJECTION");
+    logEvent("blocked", prompt.length, prompt, "SUSPECTED_PROMPT_INJECTION", requestId);
     return json(
       {
         status: "blocked",
@@ -77,7 +80,7 @@ export async function onRequest(context) {
     );
   }
 
-  logEvent("ok", prompt.length, prompt);
+  logEvent("ok", prompt.length, prompt, undefined, requestId);
   return json(
     {
       status: "ok",
